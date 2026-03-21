@@ -24,16 +24,18 @@ cloudflare/ Cloudflare WorkerのJSコード
 
 ## ドキュメント一覧
 
-- [Layer1 経営者・管理者向け説明書](docs/Layer1_経営者管理者向け.md)
-- [Layer2 運用担当者向けマニュアル](docs/Layer2_運用担当者向け.md)
-- [システム仕様書 v3](docs/仕様書_v3.md)
-- [システムアーキテクチャ](docs/SYSTEM_ARCHITECTURE.md)
-- [開発ルール](docs/DEVELOPMENT_RULES.md)
-- [開発パターン集](docs/DEVELOPMENT_PATTERNS.md)
-- [デプロイ手順](docs/DEPLOYMENT_GUIDE.md)
-- [既知バグ・罠メモ](docs/KNOWN_BUGS_AND_PITFALLS.md)
-- [GAS API 罠メモ](docs/GAS_API_PITFALLS.md)
-- [ユーザープロファイル](docs/USER_PROFILE.md)
+| ファイル | 内容 |
+|---|---|
+| [GUIDE_LAYER1_MANAGEMENT.md](docs/GUIDE_LAYER1_MANAGEMENT.md) | 経営者・管理者向け説明書 |
+| [GUIDE_LAYER2_OPERATIONS.md](docs/GUIDE_LAYER2_OPERATIONS.md) | 運用担当者向けマニュアル |
+| [SPECIFICATION.md](docs/SPECIFICATION.md) | システム仕様書 v3 |
+| [SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md) | システムアーキテクチャ |
+| [DEVELOPMENT_RULES.md](docs/DEVELOPMENT_RULES.md) | 開発ルール |
+| [DEVELOPMENT_PATTERNS.md](docs/DEVELOPMENT_PATTERNS.md) | 開発パターン集 |
+| [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) | デプロイ手順 |
+| [KNOWN_BUGS_AND_PITFALLS.md](docs/KNOWN_BUGS_AND_PITFALLS.md) | 既知バグ・罠メモ |
+| [GAS_API_PITFALLS.md](docs/GAS_API_PITFALLS.md) | GAS API 罠メモ |
+| [USER_PROFILE.md](docs/USER_PROFILE.md) | ユーザープロファイル |
 
 ## 重要：APIキーについて
 
@@ -43,4 +45,4 @@ Google SpreadsheetのSettings（⚙️設定シート）およびGASのスクリ
 
 ## 作成者
 
-石丸 Koji（2026年3月）
+石丸 浩司（2026年3月）
