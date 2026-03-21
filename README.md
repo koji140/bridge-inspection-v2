@@ -41,7 +41,11 @@ cloudflare/ Cloudflare WorkerのJSコード
 
 APIキー・デプロイURLなどの機密情報はこのリポジトリに含まれていません。
 Google SpreadsheetのSettings（⚙️設定シート）およびGASのスクリプトプロパティで管理しています。
-詳細は [Layer2 運用担当者向けマニュアル](docs/Layer2_運用担当者向け.md) を参照してください。
+詳細は [GUIDE_LAYER2_OPERATIONS.md](docs/GUIDE_LAYER2_OPERATIONS.md) を参照してください。
+
+## 開発メモ・残課題
+
+既知の実装上の残課題や今後の改善項目は [DEVELOPMENT_RULES.md](docs/DEVELOPMENT_RULES.md) の「現在の残課題」を参照してください。
 
 ## 作成者
 
