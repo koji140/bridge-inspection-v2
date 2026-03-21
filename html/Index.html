@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>橋脚点検マップ＆報告書システム</title>
+
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+      :root {
+        --bg:        #f4f5f7;
+        --surface:   #ffffff;
+        --border:    #dde0e6;
+        --text:      #1a1d23;
+        --muted:     #6b7280;
+        --accent:    #1d4ed8;
+        --accent-lt: #eff4ff;
+        --danger:    #dc2626;
+        --success:   #16a34a;
+        --warn:      #d97706;
+        --panel-w:   280px;
+        --right-w:   380px;
+        --header-h:  48px;
+      }
+
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      html, body {
+        height: 100%;
+        font-family: 'Noto Sans JP', sans-serif;
+        font-size: 13px;
+        color: var(--text);
+        background: var(--bg);
+      }
+
+      /* ========== HEADER ========== */
+      .header {
+        height: var(--header-h);
+        background: var(--text);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        padding: 0 16px;
+        gap: 12px;
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 1000;
+      }
+      .header-title {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      .header-tabs {
+        display: flex;
+        gap: 4px;
+        margin-left: auto;
+      }
+      .tab-btn {
+        padding: 5px 14px;
+        border-radius: 4px;
+        border: none;
+        background: transparent;
+        color: rgba(255,255,255,0.6);
+        font-family: inherit;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+      }
+      .tab-btn.active, .tab-btn:hover {
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+      }
+      .tab-btn.active {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      /* ========== BODY BELOW HEADER ========== */
+      .body {
+        padding-top: var(--header-h);
+        height: 100%;
+      }
+
+      /* ========== VIEWS ========== */
+      .view { display: none; height: calc(100vh - var(--header-h)); }
+      .view.active { display: flex; }
+
+      /* ========== MAP VIEW ========== */
+      #view-map {
+        display: none;
+      }
+      #view-map.active {
+        display: grid;
+        grid-template-columns: var(--panel-w) 1fr var(--right-w);
+      }
+
+      .left-panel {
+        border-right: 1px solid var(--border);
+        padding: 14px;
+        overflow-y: auto;
+        background: var(--surface);
+      }
+      .map-area { position: relative; }
+      #map { width: 100%; height: 100%; }
+
+      .right-panel {
+        border-left: 1px solid var(--border);
+        padding: 14px;
+        overflow-y: auto;
+        background: var(--surface);
+      }
+
+      /* ========== UPLOAD VIEW ========== */
+      #view-upload {
+        display: none;
+        flex-direction: column;
+      }
+      #view-upload.active {
+        display: flex;
+      }
+
+      .upload-layout {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      /* Drop zone */
+      .drop-zone-wrap {
+        padding: 20px;
+        overflow-y: auto;
+        background: var(--bg);
+      }
+
+      .drop-zone {
+        border: 2px dashed var(--border);
+        border-radius: 10px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+        background: var(--surface);
+        margin-bottom: 20px;
+      }
+      .drop-zone.over {
+        border-color: var(--accent);
+        background: var(--accent-lt);
+      }
+      .drop-zone-icon {
+        font-size: 36px;
+        margin-bottom: 10px;
+      }
+      .drop-zone-text {
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .drop-zone-sub {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      #fileInput { display: none; }
+
+      /* Photo grid */
+      .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+      }
+
+      .photo-item {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+      }
+      .photo-item img {
+        width: 100%;
+        height: 110px;
+        object-fit: cover;
+        display: block;
+      }
+      .photo-item-info {
+        padding: 8px 10px;
+        font-size: 11px;
+        line-height: 1.5;
+      }
+      .photo-item-name {
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 3px;
+      }
+      .photo-item-meta {
+        color: var(--muted);
+      }
+      .photo-item-status {
+        position: absolute;
+        top: 6px; right: 6px;
+        padding: 2px 7px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 700;
+        font-family: 'IBM Plex Mono', monospace;
+      }
+      .status-pending  { background: #fef3c7; color: #92400e; }
+      .status-loading  { background: #e0f2fe; color: #075985; }
+      .status-done     { background: #dcfce7; color: #14532d; }
+      .status-error    { background: #fee2e2; color: #7f1d1d; }
+
+      /* Sidebar */
+      .upload-sidebar {
+        border-left: 1px solid var(--border);
+        background: var(--surface);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        overflow-y: auto;
+      }
+
+      .sidebar-section {
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-section:last-child { border-bottom: none; }
+
+      .sidebar-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin-bottom: 10px;
+      }
+
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px 0;
+        font-size: 12px;
+      }
+      .stat-val {
+        font-family: 'IBM Plex Mono', monospace;
+        font-weight: 500;
+      }
+
+      .result-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 360px;
+        overflow-y: auto;
+      }
+      .result-item {
+        background: var(--bg);
+        border-radius: 6px;
+        padding: 8px 10px;
+        font-size: 11px;
+        line-height: 1.6;
+      }
+      .result-item-name {
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 2px;
+      }
+      .result-item-id {
+        font-family: 'IBM Plex Mono', monospace;
+        color: var(--accent);
+        font-size: 10px;
+        word-break: break-all;
+      }
+      .result-item-error {
+        color: var(--danger);
+      }
+
+      .copy-btn {
+        width: 100%;
+        padding: 9px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background 0.15s;
+        text-align: left;
+      }
+      .copy-btn:hover { background: var(--accent-lt); }
+
+      /* ========== SHARED COMPONENTS ========== */
+      .section-title {
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+      }
+
+      .field { margin-bottom: 12px; }
+      .field label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .field input, .field select, .field textarea {
+        width: 100%;
+        padding: 7px 10px;
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        font-family: inherit;
+        font-size: 13px;
+        background: var(--surface);
+        transition: border-color 0.15s;
+      }
+      .field input:focus, .field select:focus, .field textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border: none;
+        border-radius: 5px;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: opacity 0.15s;
+        width: 100%;
+      }
+      .btn:hover { opacity: 0.85; }
+      .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+      .btn-primary { background: var(--accent); color: #fff; }
+      .btn-secondary { background: var(--bg); border: 1px solid var(--border); color: var(--text); }
+
+      .muted { color: var(--muted); font-size: 12px; }
+
+      /* pin cards */
+      .pin-summary {
+        font-size: 13px;
+        line-height: 1.6;
+        margin-bottom: 14px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--border);
+      }
+      .photo-card {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 14px;
+        background: var(--surface);
+      }
+      .photo-card img {
+        width: 100%;
+        max-height: 180px;
+        object-fit: cover;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        background: var(--bg);
+      }
+      .photo-placeholder {
+        width: 100%;
+        height: 110px;
+        border-radius: 6px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        font-size: 12px;
+        margin-bottom: 10px;
+      }
+      .meta-row {
+        display: grid;
+        grid-template-columns: 88px 1fr;
+        column-gap: 8px;
+        margin-bottom: 5px;
+        font-size: 12px;
+        align-items: start;
+      }
+      .meta-label { color: var(--muted); font-weight: 700; }
+      .meta-value { color: var(--text); word-break: break-word; }
+      .meta-comment { white-space: pre-wrap; word-break: break-word; }
+      .photo-actions { margin-top: 10px; }
+      .photo-actions button {
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 12px;
+      }
+      .badge {
+        display: inline-block;
+        padding: 1px 7px;
+        border-radius: 999px;
+        font-size: 10px;
+        background: var(--accent-lt);
+        color: var(--accent);
+        margin-left: 5px;
+      }
+
+      /* edit form */
+      .edit-form .field label { text-transform: none; letter-spacing: 0; font-size: 12px; }
+      .edit-form textarea { min-height: 100px; resize: vertical; }
+      .edit-form .btn-row { display: flex; gap: 8px; }
+      .edit-form .btn-row .btn { flex: 1; }
+
+      /* toast / saving */
+      #savingIndicator, #toastMessage {
+        position: fixed;
+        right: 16px;
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-size: 12px;
+        z-index: 9999;
+        font-family: 'Noto Sans JP', sans-serif;
+      }
+      #savingIndicator { top: 60px; background: var(--text); color: #fff; display: none; }
+      #toastMessage    { top: 96px; background: var(--accent); color: #fff; display: none; }
+
+      /* notice box */
+      .notice {
+        background: var(--accent-lt);
+        border: 1px solid #bfdbfe;
+        border-radius: 7px;
+        padding: 10px 12px;
+        font-size: 12px;
+        line-height: 1.6;
+        color: #1e3a8a;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-title">橋脚点検マップ＆報告書システム</div>
+      <div class="header-tabs">
+        <button class="tab-btn" id="tab-upload" onclick="switchTab('upload')">📤 写真登録</button>
+        <button class="tab-btn active" id="tab-map" onclick="switchTab('map')">🗺 マップ</button>
+        <button class="tab-btn" id="tab-report" onclick="switchTab('report')">📄 報告書</button>
+      </div>
+    </header>
+
+    <div class="body">
+
+      <!-- ===== 写真登録ビュー ===== -->
+      <div class="view" id="view-upload">
+        <div class="upload-layout">
+
+          <!-- Left: drop zone + grid -->
+          <div class="drop-zone-wrap">
+            <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+              <div class="drop-zone-icon">📷</div>
+              <div class="drop-zone-text">写真をドラッグ＆ドロップ</div>
+              <div class="drop-zone-sub">または クリックして選択（複数可）</div>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" multiple>
+
+            <div class="photo-grid" id="photoGrid"></div>
+          </div>
+
+          <!-- Right: sidebar -->
+          <div class="upload-sidebar">
+
+            <div class="sidebar-section">
+              <div class="sidebar-label">登録状況</div>
+              <div class="stat-row">
+                <span>選択済み</span>
+                <span class="stat-val" id="statTotal">0 枚</span>
+              </div>
+              <div class="stat-row">
+                <span>登録完了</span>
+                <span class="stat-val" id="statDone" style="color:var(--success)">0 枚</span>
+              </div>
+              <div class="stat-row">
+                <span>エラー</span>
+                <span class="stat-val" id="statError" style="color:var(--danger)">0 枚</span>
+              </div>
+            </div>
+
+            <div class="sidebar-section">
+              <div class="sidebar-label">アクション</div>
+              <button class="btn btn-primary" id="registerBtn" onclick="registerAll()" disabled>
+                GASに登録する
+              </button>
+              <div style="height:8px"></div>
+              <button class="btn btn-secondary" onclick="clearAll()">クリア</button>
+            </div>
+
+            <div class="sidebar-section" id="resultSection" style="display:none">
+              <div class="sidebar-label">登録結果（photo_id）</div>
+              <div class="result-list" id="resultList"></div>
+              <div style="height:10px"></div>
+              <button class="copy-btn" onclick="copyResultJson()">📋 JSON をコピー（ChatGPTに貼る用）</button>
+            </div>
+
+            <div class="sidebar-section">
+              <div class="sidebar-label">次のステップ</div>
+              <div class="notice">
+                ① ここで「GASに登録する」を押す<br>
+                ② 同じ写真を ChatGPT にアップロード<br>
+                ③ 「📋 JSONをコピー」して ChatGPT に貼る<br>
+                ④ ChatGPT が所見提案・保存まで行う
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 報告書ビュー ===== -->
+      <div class="view" id="view-report">
+        <div class="upload-layout">
+
+          <!-- Left: 報告書一覧 -->
+          <div class="drop-zone-wrap">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <div class="section-title" style="margin:0;">報告書一覧</div>
+              <button class="btn btn-primary" style="width:auto;padding:6px 14px;"
+                onclick="showCreateReportForm()">＋ 新規作成</button>
+            </div>
+            <div id="reportList" class="muted">読み込み中...</div>
+          </div>
+
+          <!-- Right: 報告書詳細 -->
+          <div class="upload-sidebar" id="reportDetail">
+            <div class="muted">報告書を選択してください。</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ===== マップビュー ===== -->
+      <div class="view active" id="view-map">
+        <aside class="left-panel">
+          <div class="section-title">フィルタ</div>
+
+          <div class="field">
+            <label for="keyword">橋脚番号キーワード</label>
+            <input id="keyword" type="text" placeholder="例: B-201">
+          </div>
+
+          <div class="field">
+            <label>
+              <input id="hasDraftOnly" type="checkbox" style="width:auto;">
+              未報告ありのみ
+            </label>
+          </div>
+
+          <div class="field">
+            <button class="btn btn-secondary" id="reloadBtn" type="button">地図を再読み込み</button>
+          </div>
+
+          <div class="muted" style="margin-top:8px;">
+            ピンをクリックすると右パネルに詳細を出します。
+          </div>
+        </aside>
+
+        <main class="map-area">
+          <div id="map"></div>
+        </main>
+
+        <aside class="right-panel">
+          <div class="section-title">詳細</div>
+          <div id="rightPanelContent" class="muted">ピンをクリックしてください。</div>
+        </aside>
+      </div>
+
+    </div><!-- /body -->
+
+    <!-- toast -->
+    <div id="savingIndicator">保存中...</div>
+    <div id="toastMessage"></div>
+
+    <!-- Lightbox -->
+    <div id="lightbox" style="
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.85);
+      z-index:99999;
+      align-items:center;
+      justify-content:center;
+      cursor:zoom-out;
+    " onclick="closeLightbox()">
+      <img id="lightboxImg" src="" style="
+        max-width:92vw;
+        max-height:92vh;
+        border-radius:6px;
+        box-shadow:0 8px 40px rgba(0,0,0,0.6);
+        object-fit:contain;
+      ">
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- EXIF.js -->
+    <script src="https://cdn.jsdelivr.net/npm/exif-js@2.3.0/exif.js"></script>
+
+    <script>
+      /* =========================================
+         GAS API URL（doGet経由のGETリクエスト用）
+         GASのテンプレート変数から取得する
+      ========================================= */
+      const GAS_URL = '<?= apiBaseUrl ?>';
+
+      /**
+       * GETリクエストで GAS API を呼ぶ（大きなデータ向け）
+       */
+      async function gasGet(action, params) {
+        const url = new URL(GAS_URL);
+        url.searchParams.set('action', action);
+        if (params) {
+          Object.entries(params).forEach(([k, v]) => {
+            url.searchParams.set(k, typeof v === 'object' ? JSON.stringify(v) : String(v));
+          });
+        }
+        const res  = await fetch(url.toString());
+        const json = await res.json();
+        if (!json.ok) throw new Error(json.error || 'GAS APIエラー');
+        return json.data;
+      }
+
+      /* =========================================
+         タブ切り替え
+      ========================================= */
+      function switchTab(tab) {
+        document.getElementById('view-upload').classList.toggle('active', tab === 'upload');
+        document.getElementById('view-map').classList.toggle('active', tab === 'map');
+        document.getElementById('view-report').classList.toggle('active', tab === 'report');
+        document.getElementById('tab-upload').classList.toggle('active', tab === 'upload');
+        document.getElementById('tab-map').classList.toggle('active', tab === 'map');
+        document.getElementById('tab-report').classList.toggle('active', tab === 'report');
+        if (tab === 'map' && !map) initMap();
+        if (tab === 'report') loadReportList();
+      }
+
+      /* =========================================
+         GAS 呼び出し
+      ========================================= */
+      function gasCall(functionName, ...args) {
+        return new Promise((resolve, reject) => {
+          let settled = false;
+
+          const timer = setTimeout(() => {
+            if (!settled) {
+              settled = true;
+              reject(new Error('GAS呼び出しがタイムアウトしました: ' + functionName));
+            }
+          }, 60000); // 60秒
+
+          google.script.run
+            .withSuccessHandler(result => {
+              if (!settled) {
+                settled = true;
+                clearTimeout(timer);
+                resolve(result);
+              }
+            })
+            .withFailureHandler(err => {
+              if (!settled) {
+                settled = true;
+                clearTimeout(timer);
+                reject(err);
+              }
+            })[functionName](...args);
+        });
+      }
+
+      /* =========================================
+         写真登録ビュー
+      ========================================= */
+      let pendingFiles = []; // { file, previewUrl, exif }
+      let registeredResults = []; // { original_filename, photo_id, updated_at }
+
+      const dropZone    = document.getElementById('dropZone');
+      const fileInput   = document.getElementById('fileInput');
+      const photoGrid   = document.getElementById('photoGrid');
+      const registerBtn = document.getElementById('registerBtn');
+
+      // ドラッグ＆ドロップ
+      dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
+      dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+      dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('over');
+        handleFiles(Array.from(e.dataTransfer.files));
+      });
+      fileInput.addEventListener('change', e => handleFiles(Array.from(e.target.files)));
+
+      function handleFiles(files) {
+        const imageFiles = files.filter(f => f.type.startsWith('image/'));
+        if (!imageFiles.length) return;
+
+        imageFiles.forEach(file => {
+          const reader = new FileReader();
+          reader.onload = e => {
+            const previewUrl = e.target.result;
+            const entry = { file, previewUrl, exif: null, status: 'pending' };
+            pendingFiles.push(entry);
+
+            // EXIF 読み取り
+            EXIF.getData(file, function() {
+              const takenAtRaw = EXIF.getTag(this, 'DateTimeOriginal');
+              const lat        = getExifLatLng(this).lat;
+              const lng        = getExifLatLng(this).lng;
+              entry.exif = {
+                taken_at:       parseDateTimeOriginal(takenAtRaw),
+                lat:            lat,
+                lng:            lng,
+                lat_lng_source: (lat !== null) ? 'exif' : 'none'
+              };
+              renderGrid();
+            });
+          };
+          reader.readAsDataURL(file);
+        });
+
+        updateStats();
+        registerBtn.disabled = false;
+        renderGrid();
+      }
+
+      /**
+       * EXIF GPS → 度数変換
+       */
+      function getExifLatLng(imgObj) {
+        const latArr  = EXIF.getTag(imgObj, 'GPSLatitude');
+        const latRef  = EXIF.getTag(imgObj, 'GPSLatitudeRef');
+        const lngArr  = EXIF.getTag(imgObj, 'GPSLongitude');
+        const lngRef  = EXIF.getTag(imgObj, 'GPSLongitudeRef');
+
+        if (!latArr || !lngArr) return { lat: null, lng: null };
+
+        const toDecimal = (arr, ref) => {
+          const deg = arr[0].numerator / arr[0].denominator;
+          const min = arr[1].numerator / arr[1].denominator;
+          const sec = arr[2].numerator / arr[2].denominator;
+          const val = deg + min / 60 + sec / 3600;
+          return (ref === 'S' || ref === 'W') ? -val : val;
+        };
+
+        return {
+          lat: toDecimal(latArr, latRef),
+          lng: toDecimal(lngArr, lngRef)
+        };
+      }
+
+      /**
+       * EXIF DateTimeOriginal "2026:02:18 06:38:01" → ISO 8601
+       */
+      function parseDateTimeOriginal(raw) {
+        if (!raw) return '';
+        // "2026:02:18 06:38:01"
+        const m = String(raw).match(/^(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})$/);
+        if (!m) return '';
+        return `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}`;
+      }
+
+      function renderGrid() {
+        photoGrid.innerHTML = '';
+        pendingFiles.forEach((entry, idx) => {
+          const statusLabel = {
+            pending: '待機中',
+            loading: '送信中',
+            done:    '登録済',
+            error:   'エラー'
+          }[entry.status];
+
+          const exif = entry.exif;
+          const takenDisplay = exif && exif.taken_at ? exif.taken_at.replace('T', ' ') : '読取不可';
+          const gpsDisplay   = exif && exif.lat !== null
+            ? `${exif.lat.toFixed(5)}, ${exif.lng.toFixed(5)}`
+            : 'なし';
+
+          const el = document.createElement('div');
+          el.className = 'photo-item';
+          el.innerHTML = `
+            <span class="photo-item-status status-${entry.status}">${statusLabel}</span>
+            <img src="${entry.previewUrl}" alt="">
+            <div class="photo-item-info">
+              <div class="photo-item-name">${escHtml(entry.file.name)}</div>
+              <div class="photo-item-meta">📅 ${escHtml(takenDisplay)}</div>
+              <div class="photo-item-meta">📍 ${escHtml(gpsDisplay)}</div>
+              ${entry.status === 'done' && entry.photoId
+                ? `<div class="photo-item-meta" style="color:var(--success);font-family:'IBM Plex Mono',monospace;font-size:10px;word-break:break-all;">${escHtml(entry.photoId)}</div>`
+                : ''}
+              ${entry.status === 'error'
+                ? `<div class="photo-item-meta" style="color:var(--danger)">${escHtml(entry.errorMsg || 'エラー')}</div>`
+                : ''}
+            </div>
+          `;
+          photoGrid.appendChild(el);
+        });
+      }
+
+      function updateStats() {
+        document.getElementById('statTotal').textContent = pendingFiles.length + ' 枚';
+        document.getElementById('statDone').textContent  = pendingFiles.filter(f => f.status === 'done').length + ' 枚';
+        document.getElementById('statError').textContent = pendingFiles.filter(f => f.status === 'error').length + ' 枚';
+      }
+
+      /**
+       * File を Base64 文字列に変換する
+       */
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload  = e => {
+            // "data:image/jpeg;base64,XXXX" → "XXXX" だけ取り出す
+            const base64 = e.target.result.split(',')[1];
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function registerAll() {
+        const targets = pendingFiles.filter(f => f.status === 'pending');
+        if (!targets.length) { showToast('登録対象がありません'); return; }
+
+        registerBtn.disabled = true;
+        targets.forEach(f => f.status = 'loading');
+        renderGrid();
+
+        // EXIF が非同期で入ってくる場合があるので少し待つ
+        await new Promise(r => setTimeout(r, 300));
+
+        try {
+          // 1枚ずつ順次送る（GASのタイムアウト対策）
+          for (let idx = 0; idx < targets.length; idx++) {
+            const entry = targets[idx];
+            try {
+              const base64   = await fileToBase64(entry.file);
+              const mimeType = entry.file.type || 'image/jpeg';
+
+              const results = await gasCall('apiCreatePhotoBatchFromUi', {
+                created_by: 'web_ui',
+                photos: [{
+                  original_filename: entry.file.name,
+                  mime_type:         mimeType,
+                  image_base64:      base64,
+                  taken_at:          entry.exif ? (entry.exif.taken_at || '') : '',
+                  lat:               entry.exif ? entry.exif.lat : null,
+                  lng:               entry.exif ? entry.exif.lng : null,
+                  lat_lng_source:    entry.exif ? (entry.exif.lat_lng_source || 'none') : 'none',
+                  ocr_bridge_number: ''
+                }]
+              });
+
+              entry.status  = 'done';
+              entry.photoId = results[0].photo_id;
+              entry.fileUrl = results[0].file_url;
+              registeredResults.push(results[0]);
+
+              updateStats();
+              renderGrid();
+            } catch (err) {
+              entry.status   = 'error';
+              entry.errorMsg = err.message || String(err);
+              renderGrid();
+              updateStats();
+            }
+          }
+
+          const doneCount  = targets.filter(f => f.status === 'done').length;
+          const errorCount = targets.filter(f => f.status === 'error').length;
+
+          if (doneCount > 0) showResultSection();
+          if (errorCount > 0) {
+            showToast('⚠️ ' + doneCount + ' 枚成功、' + errorCount + ' 枚失敗', true);
+          } else {
+            showToast('✅ ' + doneCount + ' 枚を登録しました');
+          }
+        } catch (err) {
+          showToast('エラー: ' + (err.message || err), true);
+        }
+
+        registerBtn.disabled = false;
+      }
+
+      function showResultSection() {
+        const section = document.getElementById('resultSection');
+        const list    = document.getElementById('resultList');
+        section.style.display = '';
+
+        list.innerHTML = registeredResults.map(r => `
+          <div class="result-item">
+            <div class="result-item-name">${escHtml(r.original_filename)}</div>
+            <div class="result-item-id">${escHtml(r.photo_id)}</div>
+          </div>
+        `).join('');
+      }
+
+      function copyResultJson() {
+        // photo_id / original_filename / file_url / updated_at を含む完全な形式で出力
+        const payload = registeredResults.map(r => ({
+          photo_id:          r.photo_id,
+          original_filename: r.original_filename,
+          file_url:          r.file_url || '',
+          updated_at:        r.updated_at
+        }));
+        const instruction =
+          '以下の写真がシステムに登録されました。\n' +
+          '各 photo_id と original_filename の対応を確認しながら処理してください。\n\n' +
+          JSON.stringify(payload, null, 2);
+        navigator.clipboard.writeText(instruction).then(() => {
+          showToast('📋 コピーしました');
+        }).catch(() => {
+          prompt('以下をコピーしてください:', instruction);
+        });
+      }
+
+      function clearAll() {
+        pendingFiles = [];
+        registeredResults = [];
+        photoGrid.innerHTML = '';
+        document.getElementById('resultSection').style.display = 'none';
+        document.getElementById('resultList').innerHTML = '';
+        fileInput.value = '';
+        registerBtn.disabled = true;
+        updateStats();
+      }
+
+      /* =========================================
+         マップビュー
+      ========================================= */
+      let map;
+      let markerLayer;
+      let currentRightPanelPinId = null;
+      let currentRightPanelData  = null;
+
+      function initMap() {
+        if (map) return;
+        map = L.map('map');
+        markerLayer = L.layerGroup().addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        map.setView([35.68, 139.76], 12);
+        loadMapPins();
+      }
+
+      function getPinColorHex(colorName) {
+        return {
+          red:       '#dc2626',
+          orange:    '#ea580c',
+          yellow:    '#ca8a04',
+          blue:      '#1d4ed8',
+          gray:      '#6b7280',
+          lightgray: '#9ca3af'
+        }[colorName] || '#9ca3af';
+      }
+
+      function buildPinIcon(pin) {
+        const color = getPinColorHex(pin.pin_color);
+        return L.divIcon({
+          className: '',
+          html: `<div style="width:18px;height:18px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 0 0 1px rgba(0,0,0,0.2);position:relative;">
+            ${pin.has_draft ? `<div style="position:absolute;top:-5px;right:-5px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:1px solid white;"></div>` : ''}
+          </div>`,
+          iconSize: [18, 18],
+          iconAnchor: [9, 9]
+        });
+      }
+
+      async function loadMapPins() {
+        const keyword      = document.getElementById('keyword').value.trim();
+        const hasDraftOnly = document.getElementById('hasDraftOnly').checked;
+
+        const pinsRaw = await gasGet('getMapPins', {
+          has_draft_only: hasDraftOnly,
+          keyword: keyword
+        });
+        const pins = Array.isArray(pinsRaw) ? pinsRaw : [];
+
+        markerLayer.clearLayers();
+        console.log('pins received:', pins.length, JSON.stringify(pins.map(p => ({id:p.pin_id, lat:p.lat, lng:p.lng}))));
+        pins.forEach(pin => {
+          const lat = Number(pin.lat);
+          const lng = Number(pin.lng);
+          console.log('pin:', pin.pin_id, 'lat:', lat, 'lng:', lng, 'isNaN:', isNaN(lat) || isNaN(lng));
+          if (isNaN(lat) || isNaN(lng)) return;
+
+          const marker = L.marker([lat, lng], { icon: buildPinIcon(pin) });
+          marker.on('click', async () => {
+            try { await loadRightPanel(pin.pin_id); }
+            catch (e) { alert(e.message || e); }
+          });
+          marker.bindTooltip(`${pin.bridge_number || '橋脚番号未設定'}${pin.badge_text ? ' / ' + pin.badge_text : ''}`);
+          markerLayer.addLayer(marker);
+        });
+
+        if (pins.length > 0) {
+          const pts = pins.map(p => [Number(p.lat), Number(p.lng)]).filter(([a,b]) => !isNaN(a) && !isNaN(b));
+          if (pts.length) map.fitBounds(L.latLngBounds(pts), { padding: [30, 30] });
+        }
+      }
+
+      async function loadRightPanel(pinId) {
+        currentRightPanelPinId = pinId;
+        const data = await gasGet('getRightPanelData', { pin_id: pinId });
+        currentRightPanelData  = data || { pin: {}, photos: [] };
+
+        const pin    = currentRightPanelData.pin    || {};
+        const photos = Array.isArray(currentRightPanelData.photos) ? currentRightPanelData.photos : [];
+
+        let html = '<div class="pin-summary">';
+        html += `<div><strong>橋脚番号:</strong> ${escHtml(pin.bridge_number || '')}</div>`;
+        html += `<div><strong>写真枚数:</strong> ${photos.length}</div>`;
+        html += `<div><strong>最大ステータス:</strong> ${escHtml(pin.max_response_status || 'unset')}</div>`;
+        html += `<div><strong>未報告:</strong> ${pin.has_draft ? 'あり' : 'なし'}</div>`;
+        html += '</div>';
+
+        if (!photos.length) {
+          html += '<div class="muted">写真はありません。</div>';
+        } else {
+          photos.forEach(photo => { html += renderPhotoCard(photo); });
+        }
+
+        document.getElementById('rightPanelContent').innerHTML = html;
+      }
+
+      function renderPhotoCard(photo) {
+        const imageUrl  = photo.thumb_url || photo.file_url || '';
+        const imageHtml = imageUrl
+          ? `<img src="${escAttr(imageUrl)}" alt=""
+               style="cursor:zoom-in;"
+               onclick="openLightbox('${escAttr(photo.file_url || imageUrl)}')"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+             <div class="photo-placeholder" style="display:none;">画像なし</div>`
+          : `<div class="photo-placeholder">画像なし</div>`;
+
+        const lockedHtml    = photo.is_locked ? '<span class="badge">locked</span>' : '';
+        const responseLabel = responseStatusLabel(photo.response_status);
+
+        return `
+          <div class="photo-card">
+            ${imageHtml}
+            <div class="photo-meta">
+              <div class="meta-row"><span class="meta-label">photo_id：</span><span class="meta-value" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);word-break:break-all;">${escHtml(photo.photo_id || '')}</span></div>
+              <div class="meta-row"><span class="meta-label">対応要否：</span><span class="meta-value">${escHtml(responseLabel)}</span></div>
+              <div class="meta-row"><span class="meta-label">状態：</span><span class="meta-value">${escHtml(photo.status)}${lockedHtml}</span></div>
+              <div class="meta-row"><span class="meta-label">撮影日時：</span><span class="meta-value">${escHtml(photo.taken_at || '')}</span></div>
+              <div class="meta-row"><span class="meta-label">橋脚番号：</span><span class="meta-value">${escHtml(photo.bridge_number_final || '')}</span></div>
+              <div class="meta-row"><span class="meta-label">タグ：</span><span class="meta-value">${escHtml(photo.tag_final || '')}</span></div>
+              <div class="meta-row"><span class="meta-label">所見：</span><div class="meta-comment">${escHtml(photo.comment_final || '')}</div></div>
+              <div class="photo-actions">
+                <button type="button" onclick="editPhoto('${escAttr(photo.photo_id)}')">編集</button>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      function responseStatusLabel(status) {
+        return { 1:'対応要（初期対応済）', 2:'対応要（継続対応）', 3:'対応要（未対応）',
+                 4:'現地確認の結果、異常なし', 5:'対応不要' }[Number(status)] || '未設定';
+      }
+
+      function editPhoto(photoId) { showEditForm(photoId); }
+
+      function getPhotoFromCurrentPanel(photoId) {
+        if (!currentRightPanelData || !currentRightPanelData.photos) return null;
+        return currentRightPanelData.photos.find(p => String(p.photo_id) === String(photoId)) || null;
+      }
+
+      function buildResponseStatusOptions(selectedValue) {
+        return [
+          { value: '1', label: '対応要事象（初期対応済）' },
+          { value: '2', label: '対応要事象（以降要）' },
+          { value: '3', label: '対応要事象（未対応）' },
+          { value: '4', label: '現地確認の結果、異常なし' },
+          { value: '5', label: '対応不要事象' },
+          { value: 'unset', label: '未設定' }
+        ].map(opt => `<option value="${escAttr(opt.value)}"${String(selectedValue) === String(opt.value) ? ' selected' : ''}>${escHtml(opt.label)}</option>`).join('');
+      }
+
+      function showEditForm(photoId) {
+        const photo = getPhotoFromCurrentPanel(photoId);
+        if (!photo) { alert('写真データが見つかりません'); return; }
+
+        const imageUrl  = photo.thumb_url || photo.file_url || '';
+        const imageHtml = imageUrl
+          ? `<img src="${escAttr(imageUrl)}" alt=""
+               style="width:100%;max-height:200px;object-fit:cover;border-radius:6px;margin-bottom:12px;cursor:zoom-in;"
+               onclick="openLightbox('${escAttr(photo.file_url || imageUrl)}')"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+             <div class="photo-placeholder" style="display:none;">画像なし</div>`
+          : `<div class="photo-placeholder">画像なし</div>`;
+
+        document.getElementById('rightPanelContent').innerHTML = `
+          <div class="pin-summary">
+            <div style="font-weight:700;margin-bottom:6px;">写真を編集中</div>
+            <div><strong>橋脚番号:</strong> ${escHtml(photo.bridge_number_final || '')}</div>
+            <div><strong>撮影日時:</strong> ${escHtml(photo.taken_at || '')}</div>
+          </div>
+          ${imageHtml}
+          <div class="edit-form">
+            <div class="field">
+              <label>橋脚番号</label>
+              <input id="editBridgeNumber" type="text" value="${escAttr(photo.bridge_number_final || '')}">
+            </div>
+            <div class="field">
+              <label>対応要否</label>
+              <select id="editResponseStatus">${buildResponseStatusOptions(photo.response_status)}</select>
+            </div>
+            <div class="field">
+              <label>タグ</label>
+              <input id="editTagFinal" type="text" value="${escAttr(photo.tag_final || '')}">
+            </div>
+            <div class="field">
+              <label>所見</label>
+              <textarea id="editCommentFinal">${escHtml(photo.comment_final || '')}</textarea>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-primary" type="button" onclick="savePhotoEdit('${escAttr(photo.photo_id)}')">保存</button>
+              <button class="btn btn-secondary" type="button" onclick="cancelPhotoEdit()">キャンセル</button>
+            </div>
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+              <button class="btn" type="button"
+                style="background:#fff;border:1px solid var(--danger);color:var(--danger);"
+                onclick="deletePhoto('${escAttr(photo.photo_id)}')">
+                🗑 この写真を削除
+              </button>
+            </div>
+          </div>`;
+      }
+
+      async function deletePhoto(photoId) {
+        if (!confirm('この写真を削除しますか？\n削除後は元に戻せません。')) return;
+
+        try {
+          showSaving(true);
+          const photo = getPhotoFromCurrentPanel(photoId);
+          if (!photo) throw new Error('削除対象の写真が見つかりません');
+
+          await gasCall('apiDeletePhotoFromUi', {
+            photo_id:   photo.photo_id,
+            updated_at: String(photo.updated_at || ''),
+            updated_by: 'ui_user'
+          });
+
+          await loadRightPanel(currentRightPanelPinId);
+          await loadMapPins();
+          showToast('削除しました');
+        } catch (e) {
+          showToast(e.message || String(e), true);
+        } finally {
+          showSaving(false);
+        }
+      }
+
+      function cancelPhotoEdit() {
+        if (!currentRightPanelPinId) {
+          document.getElementById('rightPanelContent').innerHTML = '<span class="muted">ピンをクリックしてください。</span>';
+          return;
+        }
+        loadRightPanel(currentRightPanelPinId);
+      }
+
+      async function savePhotoEdit(photoId) {
+        try {
+          showSaving(true);
+          const photo = getPhotoFromCurrentPanel(photoId);
+          if (!photo) throw new Error('編集対象の写真が見つかりません');
+
+          await gasCall('apiUpdatePhotoFromUi', {
+            photo_id:             photo.photo_id,
+            updated_at:           String(photo.updated_at || ''),
+            bridge_number_final:  document.getElementById('editBridgeNumber').value,
+            response_status:      document.getElementById('editResponseStatus').value,
+            tag_final:            document.getElementById('editTagFinal').value,
+            comment_final:        document.getElementById('editCommentFinal').value,
+            updated_by:           'ui_user'
+          });
+
+          await loadRightPanel(currentRightPanelPinId);
+          await loadMapPins();
+          showToast('保存しました');
+        } catch (e) {
+          showToast(e.message || String(e), true);
+        } finally {
+          showSaving(false);
+        }
+      }
+
+      /* =========================================
+         共通ユーティリティ
+      ========================================= */
+      function escHtml(v) {
+        return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                               .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+      }
+      function escAttr(v) { return escHtml(v); }
+
+      /* =========================================
+         報告書ビュー
+      ========================================= */
+
+      async function loadReportList() {
+        const listEl = document.getElementById('reportList');
+        listEl.innerHTML = '<span class="muted">読み込み中...</span>';
+        try {
+          const reports = await gasGet('getReportList');
+          const list = Array.isArray(reports) ? reports : [];
+          if (!list.length) {
+            listEl.innerHTML = '<span class="muted">報告書はまだありません。</span>';
+            return;
+          }
+          listEl.innerHTML = list.map(r => `
+            <div class="photo-card" style="cursor:pointer;" onclick="loadReportDetail('${escAttr(r.report_id)}')">
+              <div style="font-weight:700;margin-bottom:4px;">${escHtml(r.report_name || r.report_id)}</div>
+              <div style="font-size:11px;color:var(--muted);">
+                ${escHtml(r.report_type || '')}　
+                <span style="background:${r.status === 'confirmed' ? 'var(--success)' : 'var(--warn)'};color:#fff;padding:1px 7px;border-radius:999px;font-size:10px;">
+                  ${r.status === 'confirmed' ? '確定済' : 'draft'}
+                </span>
+              </div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(r.execution_date || '')} ${escHtml(r.execution_place || '')}</div>
+            </div>
+          `).join('');
+        } catch(e) {
+          listEl.innerHTML = '<span style="color:var(--danger);">' + escHtml(e.message || String(e)) + '</span>';
+        }
+      }
+
+      async function loadReportDetail(reportId) {
+        const detailEl = document.getElementById('reportDetail');
+        detailEl.innerHTML = '<span class="muted">読み込み中...</span>';
+        try {
+          const data = await gasGet('getReportDetail', { report_id: reportId });
+          const r    = data.report;
+          const items = data.items || [];
+
+          const isConfirmed = r.status === 'confirmed';
+          detailEl.innerHTML = `
+            <div class="sidebar-section">
+              <div class="sidebar-label">報告書情報</div>
+              <div style="font-size:13px;line-height:1.8;">
+                <div><strong>${escHtml(r.report_name || '')}</strong></div>
+                <div>実施日：${escHtml(r.execution_date || '')}</div>
+                <div>場所：${escHtml(r.execution_place || '')}</div>
+                <div>種別：${escHtml(r.report_type || '')}</div>
+                <div>内容：${escHtml(r.work_content || '')}</div>
+                <div>状態：<span style="background:${isConfirmed ? 'var(--success)' : 'var(--warn)'};color:#fff;padding:1px 7px;border-radius:999px;font-size:11px;">${isConfirmed ? '確定済' : 'draft'}</span></div>
+                ${r.pdf_url ? `<div style="margin-top:6px;"><a href="${escAttr(r.pdf_url)}" target="_blank" style="color:var(--accent);">📄 PDFを開く</a></div>` : ''}
+              </div>
+            </div>
+
+            <div class="sidebar-section">
+              <div class="sidebar-label">アクション</div>
+              ${!isConfirmed ? `
+                <button class="btn btn-secondary" style="margin-bottom:8px;"
+                  onclick="showEditReportForm('${escAttr(r.report_id)}', '${escAttr(r.report_name || '')}', '${escAttr(r.execution_date || '')}', '${escAttr(r.execution_place || '')}', '${escAttr(r.report_type || '')}', \`${escAttr(r.work_content || '')}\`)">
+                  ✏️ 内容を編集
+                </button>
+                <div style="height:4px;"></div>
+              ` : ''}
+              ${!r.pdf_url ? `
+                <button class="btn btn-primary" onclick="generatePdf('${escAttr(r.report_id)}')">📄 PDF生成</button>
+                <div style="height:8px;"></div>
+              ` : ''}
+              ${r.pdf_url && !isConfirmed ? `
+                <button class="btn btn-primary" onclick="generatePdf('${escAttr(r.report_id)}')">📄 PDF再生成</button>
+                <div style="height:8px;"></div>
+                <button class="btn" style="background:#fff;border:1px solid var(--success);color:var(--success);"
+                  onclick="confirmReport('${escAttr(r.report_id)}')">✅ 報告書を確定する</button>
+                <div style="height:8px;"></div>
+              ` : ''}
+            </div>
+
+            <div class="sidebar-section">
+              <div class="sidebar-label">明細（${items.length}件）</div>
+              <div style="max-height:400px;overflow-y:auto;">
+                ${items.map(item => `
+                  <div style="border:1px solid var(--border);border-radius:6px;padding:8px;margin-bottom:8px;font-size:11px;">
+                    <div style="font-weight:700;">No.${item.order_no}　${escHtml(item.bridge_number || '')}</div>
+                    <div style="color:var(--muted);margin:3px 0;">${escHtml(item.comment_final || '（所見なし）')}</div>
+                    ${item.thumb_url || item.file_url
+                      ? `<img src="${escAttr(item.thumb_url || item.file_url)}" style="width:100%;max-height:120px;object-fit:cover;border-radius:4px;">`
+                      : '<div style="color:var(--muted);">写真なし</div>'}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        } catch(e) {
+          detailEl.innerHTML = '<span style="color:var(--danger);">' + escHtml(e.message || String(e)) + '</span>';
+        }
+      }
+
+      /* =========================================
+         ③ 報告書内容編集
+      ========================================= */
+      function showEditReportForm(reportId, name, date, place, type, workContent) {
+        const detailEl = document.getElementById('reportDetail');
+        detailEl.innerHTML = `
+          <div class="sidebar-section">
+            <div class="sidebar-label">報告書を編集中</div>
+            <div class="field"><label>報告書名</label><input id="er_name" type="text" value="${escAttr(name)}"></div>
+            <div class="field"><label>実施日</label><input id="er_date" type="date" value="${escAttr(date)}"></div>
+            <div class="field"><label>実施場所</label><input id="er_place" type="text" value="${escAttr(place)}"></div>
+            <div class="field">
+              <label>報告書種別</label>
+              <select id="er_type">
+                ${['定期点検','臨時点検','災害後確認','補修後確認','その他'].map(t =>
+                  `<option${t === type ? ' selected' : ''}>${escHtml(t)}</option>`
+                ).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <label>内容</label>
+              <textarea id="er_content" style="min-height:120px;">${escHtml(workContent)}</textarea>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-primary" onclick="saveReportEdit('${escAttr(reportId)}')">保存</button>
+              <button class="btn btn-secondary" onclick="loadReportDetail('${escAttr(reportId)}')">キャンセル</button>
+            </div>
+          </div>
+        `;
+      }
+
+      async function saveReportEdit(reportId) {
+        try {
+          showSaving(true);
+          await gasCall('apiUpdateReportFromUi', {
+            report_id:      reportId,
+            report_name:    document.getElementById('er_name').value,
+            execution_date: document.getElementById('er_date').value,
+            execution_place:document.getElementById('er_place').value,
+            report_type:    document.getElementById('er_type').value,
+            work_content:   document.getElementById('er_content').value,
+            updated_by:     'ui_user'
+          });
+          showToast('✅ 報告書を更新しました');
+          loadReportList();
+          loadReportDetail(reportId);
+        } catch(e) {
+          showToast(e.message || String(e), true);
+        } finally {
+          showSaving(false);
+        }
+      }
+
+      async function generatePdf(reportId) {
+        if (!confirm('PDFを生成します。写真が多い場合は時間がかかります。続けますか？')) return;
+        try {
+          showSaving(true);
+          const result = await gasCall('apiGenerateReportPdfFromUi', reportId);
+          showToast('✅ PDF生成完了');
+          loadReportDetail(reportId);
+        } catch(e) {
+          showToast(e.message || String(e), true);
+        } finally {
+          showSaving(false);
+        }
+      }
+
+      async function confirmReport(reportId) {
+        if (!confirm('報告書を確定します。確定後は内容を変更できません。続けますか？')) return;
+        try {
+          showSaving(true);
+          await gasCall('apiConfirmReportFromUi', reportId);
+          showToast('✅ 報告書を確定しました');
+          loadReportList();
+          loadReportDetail(reportId);
+        } catch(e) {
+          showToast(e.message || String(e), true);
+        } finally {
+          showSaving(false);
+        }
+      }
+
+      function showCreateReportForm() {
+        const detailEl = document.getElementById('reportDetail');
+
+        // 有効なpinを取得（fetchベースのgasGetで取得）
+        gasGet('getMapPins', { has_draft_only: false, keyword: '' })
+          .then(pinsRaw => {
+            const pins = Array.isArray(pinsRaw) ? pinsRaw : [];
+            console.log('pins for form:', pins.length);
+            detailEl.innerHTML = `
+              <div class="sidebar-section">
+                <div class="sidebar-label">新規報告書作成</div>
+                <div class="field"><label>実施日</label><input id="cf_date" type="date"></div>
+                <div class="field"><label>実施場所</label><input id="cf_place" type="text" placeholder="例: 6号向島線高架下（堤通出入口付近）"></div>
+                <div class="field">
+                  <label>報告書種別</label>
+                  <select id="cf_type">
+                    <option>定期点検</option>
+                    <option selected>臨時点検</option>
+                    <option>災害後確認</option>
+                    <option>補修後確認</option>
+                    <option>その他</option>
+                  </select>
+                </div>
+                <div class="field"><label>内容</label><textarea id="cf_content" style="min-height:80px;"></textarea></div>
+                <div class="field">
+                  <label>対象ピン（複数選択可）</label>
+                  <div style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:5px;padding:8px;" id="pinCheckboxList">
+                    ${pins.map(p => `
+                      <label style="display:block;padding:4px 0;font-size:12px;cursor:pointer;">
+                        <input type="checkbox" value="${escAttr(p.pin_id)}"
+                          style="width:auto;margin-right:6px;"
+                          onchange="onPinSelectionChange()">
+                        ${escHtml(p.bridge_number || '（番号なし）')}
+                        <span style="color:var(--muted);font-size:10px;">写真${p.photo_count}枚</span>
+                      </label>
+                    `).join('')}
+                  </div>
+                  <div id="suggestingIndicator" style="display:none;font-size:11px;color:var(--muted);margin-top:4px;">提案中...</div>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn btn-primary" onclick="submitCreateReport()">作成</button>
+                  <button class="btn btn-secondary" onclick="loadReportDetail('')">キャンセル</button>
+                </div>
+              </div>
+            `;
+          })
+          .catch(e => {
+            detailEl.innerHTML = '<span style="color:var(--danger);">ピン一覧の取得に失敗: ' + escHtml(e.message || String(e)) + '</span>';
+          });
+      }
+
+      let suggestTimer = null;
+
+      function onPinSelectionChange() {
+        // 連続変更時にデバウンス（500ms待つ）
+        clearTimeout(suggestTimer);
+        suggestTimer = setTimeout(async () => {
+          const checked = [...document.querySelectorAll('#pinCheckboxList input[type=checkbox]:checked')]
+            .map(el => el.value);
+
+          if (!checked.length) return;
+
+          document.getElementById('suggestingIndicator').style.display = 'block';
+          try {
+            console.log('suggesting for pins:', checked);
+          const suggestion = await gasCall('apiSuggestReportHeaderFromUi', checked);
+          console.log('suggestion result:', suggestion);
+            if (!suggestion) return;
+
+            // 実施日（まだ未入力か、前回の自動入力値なら上書き）
+            const dateEl = document.getElementById('cf_date');
+            if (suggestion.execution_date) {
+              dateEl.value = suggestion.execution_date;
+            }
+
+            // 実施場所（空欄なら自動入力、入力済みなら確認してから上書き）
+            const placeEl = document.getElementById('cf_place');
+            if (suggestion.execution_place) {
+              placeEl.value = suggestion.execution_place;
+              placeEl.style.background = 'var(--accent-lt)';
+              setTimeout(() => { placeEl.style.background = ''; }, 1500);
+            }
+
+            // 内容（空欄なら自動入力）
+            const contentEl = document.getElementById('cf_content');
+            if (suggestion.work_content) {
+              contentEl.value = suggestion.work_content;
+              contentEl.style.background = 'var(--accent-lt)';
+              setTimeout(() => { contentEl.style.background = ''; }, 1500);
+            }
+          } catch(e) {
+            console.warn('提案取得失敗:', e);
+          } finally {
+            document.getElementById('suggestingIndicator').style.display = 'none';
+          }
+        }, 500);
+      }
+
+      async function submitCreateReport() {
+        const date    = document.getElementById('cf_date').value;
+        const place   = document.getElementById('cf_place').value.trim();
+        const type    = document.getElementById('cf_type').value;
+        const content = document.getElementById('cf_content').value.trim();
+        const checked = [...document.querySelectorAll('#reportDetail input[type=checkbox]:checked')]
+          .map(el => el.value);
+
+        if (!date)          { showToast('実施日を入力してください', true); return; }
+        if (!place)         { showToast('実施場所を入力してください', true); return; }
+        if (!checked.length){ showToast('対象ピンを1つ以上選択してください', true); return; }
+
+        try {
+          showSaving(true);
+          const result = await gasCall('apiCreateReportFromUi', {
+            execution_date:   date,
+            execution_place:  place,
+            report_type:      type,
+            work_content:     content,
+            selected_pin_ids: checked,
+            created_by:       'ui_user'
+          });
+          showToast('✅ 報告書を作成しました');
+          loadReportList();
+          const reportId = result && result.report ? result.report.report_id : null;
+          if (reportId) loadReportDetail(reportId);
+        } catch(e) {
+          showToast(e.message || String(e), true);
+        } finally {
+          showSaving(false);
+        }
+      }
+
+      /* =========================================
+         ② Lightbox（写真拡大）
+      ========================================= */
+      function openLightbox(url) {
+        const lb = document.getElementById('lightbox');
+        document.getElementById('lightboxImg').src = url;
+        lb.style.display = 'flex';
+      }
+      function closeLightbox() {
+        document.getElementById('lightbox').style.display = 'none';
+        document.getElementById('lightboxImg').src = '';
+      }
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      function showSaving(show) {
+        document.getElementById('savingIndicator').style.display = show ? 'block' : 'none';
+      }
+      function showToast(msg, isError = false) {
+        const el = document.getElementById('toastMessage');
+        el.textContent = msg;
+        el.style.background = isError ? 'var(--danger)' : 'var(--success)';
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 2800);
+      }
+
+      /* =========================================
+         初期化
+      ========================================= */
+      window.addEventListener('load', () => {
+        // 最初はマップタブを表示
+        initMap();
+
+        document.getElementById('reloadBtn').addEventListener('click', async () => {
+          try { await loadMapPins(); }
+          catch (e) { alert(e.message || e); }
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+# APIキーや認証情報を含むファイルは絶対に上げない
+*.env
+.env.local
+secrets.json
+api_keys.txt
+
+# Windowsの不要ファイル
+Thumbs.db
+Desktop.ini
+
+# macOSの不要ファイル
+.DS_Store
+
+# VS Codeの設定（個人設定は共有不要）
+.vscode/settings.json
+
+# 一時ファイル
+*.tmp
+*.log

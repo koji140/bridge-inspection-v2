@@ -1,0 +1,509 @@
+openapi: 3.1.0
+info:
+  title: Bridge Inspection GPT Actions
+  version: 1.1.0
+
+servers:
+  - url: https://icy-art-b1b8.koji-ishimaru.workers.dev
+
+paths:
+  /saveApprovedPhotoMetadata:
+    post:
+      operationId: saveApprovedPhotoMetadata
+      summary: Save approved photo metadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                action:
+                  type: string
+                  enum:
+                    - saveApprovedPhotoMetadata
+                payload:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    updated_by:
+                      type: string
+                    items:
+                      type: array
+                      items:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                          photo_id:
+                            type: string
+                          updated_at:
+                            type: string
+                          comment_final:
+                            type: string
+                          tag_final:
+                            type: string
+                          response_status:
+                            type: string
+                            enum:
+                              - "1"
+                              - "2"
+                              - "3"
+                              - "4"
+                              - "5"
+                              - "unset"
+                          pin_id:
+                            type: string
+                        required:
+                          - photo_id
+                          - updated_at
+                          - comment_final
+                          - tag_final
+                          - response_status
+                          - pin_id
+                  required:
+                    - updated_by
+                    - items
+              required:
+                - action
+                - payload
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  ok:
+                    type: boolean
+                  error:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+                required:
+                  - ok
+
+  /resolveGroupingAgainstExistingPins:
+    post:
+      operationId: resolveGroupingAgainstExistingPins
+      summary: Resolve uploaded groups against existing pins
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                action:
+                  type: string
+                  enum:
+                    - resolveGroupingAgainstExistingPins
+                payload:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    groups:
+                      type: array
+                      items:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                          group_id:
+                            type: string
+                          photo_ids:
+                            type: array
+                            items:
+                              type: string
+                          suggested_bridge_number:
+                            type: string
+                          lat:
+                            type:
+                              - number
+                              - "null"
+                          lng:
+                            type:
+                              - number
+                              - "null"
+                          taken_at:
+                            type: string
+                        required:
+                          - group_id
+                          - photo_ids
+                          - suggested_bridge_number
+                          - taken_at
+                  required:
+                    - groups
+              required:
+                - action
+                - payload
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  ok:
+                    type: boolean
+                  error:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        group_id:
+                          type: string
+                        resolution_type:
+                          type: string
+                          enum:
+                            - auto_assign
+                            - approval_required
+                            - create_new_pin
+                        candidate_pin_ids:
+                          type: array
+                          items:
+                            type: string
+                        matched_pin_id:
+                          type: string
+                        resolution_reason:
+                          type: string
+                      required:
+                        - group_id
+                        - resolution_type
+                        - candidate_pin_ids
+                        - matched_pin_id
+                        - resolution_reason
+                required:
+                  - ok
+
+  /createNewPinAndSaveApprovedMetadata:
+    post:
+      operationId: createNewPinAndSaveApprovedMetadata
+      summary: Create a new pin and save approved photo metadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                action:
+                  type: string
+                  enum:
+                    - createNewPinAndSaveApprovedMetadata
+                payload:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    group_id:
+                      type: string
+                    bridge_number:
+                      type: string
+                    pin_lat:
+                      type:
+                        - number
+                        - "null"
+                    pin_lng:
+                      type:
+                        - number
+                        - "null"
+                    pin_lat_lng_method:
+                      type: string
+                    updated_by:
+                      type: string
+                    items:
+                      type: array
+                      items:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                          photo_id:
+                            type: string
+                          updated_at:
+                            type: string
+                          comment_final:
+                            type: string
+                          tag_final:
+                            type: string
+                          response_status:
+                            type: string
+                            enum:
+                              - "1"
+                              - "2"
+                              - "3"
+                              - "4"
+                              - "5"
+                              - "unset"
+                        required:
+                          - photo_id
+                          - updated_at
+                          - comment_final
+                          - tag_final
+                          - response_status
+                  required:
+                    - updated_by
+                    - items
+              required:
+                - action
+                - payload
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  ok:
+                    type: boolean
+                  error:
+                    type: string
+                  data:
+                    type: object
+                    additionalProperties: true
+                required:
+                  - ok
+
+  /createPhotoBatch:
+    post:
+      operationId: createPhotoBatch
+      summary: Register uploaded photos to the photos sheet and get photo_ids
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                action:
+                  type: string
+                  enum:
+                    - createPhotoBatch
+                payload:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    created_by:
+                      type: string
+                    photos:
+                      type: array
+                      items:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                          original_filename:
+                            type: string
+                          taken_at:
+                            type: string
+                          lat:
+                            type:
+                              - number
+                              - "null"
+                          lng:
+                            type:
+                              - number
+                              - "null"
+                          lat_lng_source:
+                            type: string
+                            enum:
+                              - exif
+                              - manual
+                              - none
+                          ocr_bridge_number:
+                            type: string
+                        required:
+                          - original_filename
+                          - taken_at
+                          - lat_lng_source
+                          - ocr_bridge_number
+                  required:
+                    - photos
+              required:
+                - action
+                - payload
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  ok:
+                    type: boolean
+                  error:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        original_filename:
+                          type: string
+                        photo_id:
+                          type: string
+                        updated_at:
+                          type: string
+                      required:
+                        - original_filename
+                        - photo_id
+                        - updated_at
+                required:
+                  - ok
+
+  /createReport:
+    post:
+      operationId: createReport
+      summary: Create a new report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                action:
+                  type: string
+                  enum:
+                    - createReport
+                payload:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    execution_date:
+                      type: string
+                    execution_place:
+                      type: string
+                    report_type:
+                      type: string
+                    work_content:
+                      type: string
+                    selected_pin_ids:
+                      type: array
+                      items:
+                        type: string
+                    created_by:
+                      type: string
+                  required:
+                    - execution_date
+                    - execution_place
+                    - report_type
+                    - selected_pin_ids
+              required:
+                - action
+                - payload
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  data:
+                    type: object
+                    additionalProperties: true
+
+  /generateReportPdf:
+    post:
+      operationId: generateReportPdf
+      summary: Generate PDF for a report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                action:
+                  type: string
+                  enum:
+                    - generateReportPdf
+                payload:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    report_id:
+                      type: string
+                    updated_by:
+                      type: string
+                  required:
+                    - report_id
+              required:
+                - action
+                - payload
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  data:
+                    type: object
+                    additionalProperties: true
+
+  /confirmReport:
+    post:
+      operationId: confirmReport
+      summary: Confirm a report (draft -> confirmed, photos -> published)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                action:
+                  type: string
+                  enum:
+                    - confirmReport
+                payload:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    report_id:
+                      type: string
+                    updated_by:
+                      type: string
+                  required:
+                    - report_id
+              required:
+                - action
+                - payload
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  data:
+                    type: object
+                    additionalProperties: true
