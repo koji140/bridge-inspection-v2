@@ -37,7 +37,11 @@ cloudflare/ Cloudflare WorkerのJSコード
 | [GAS_API_PITFALLS.md](docs/GAS_API_PITFALLS.md) | GAS API 罠メモ |
 | [USER_PROFILE.md](docs/USER_PROFILE.md) | ユーザープロファイル |
 | [docs/presentation/kikagaku-final/README.md](docs/presentation/kikagaku-final/README.md) | キカガク最終発表用資料 |
+| [docs/presentation/kikagaku-final/slide-outline.md](docs/presentation/kikagaku-final/slide-outline.md) | 発表スライド構成案 |
+| [docs/presentation/kikagaku-final/talk-track.md](docs/presentation/kikagaku-final/talk-track.md) | 発表トーク原稿 |
 | [docs/presentation/kikagaku-final/manus-prompt.md](docs/presentation/kikagaku-final/manus-prompt.md) | Manus向けスライド生成プロンプト |
+| [docs/presentation/kikagaku-final/manus-prompt-compact.md](docs/presentation/kikagaku-final/manus-prompt-compact.md) | Manus再投入用の超圧縮プロンプト |
+| [docs/presentation/kikagaku-final/github-ai-slide-prompt.md](docs/presentation/kikagaku-final/github-ai-slide-prompt.md) | GitHub AI Slide用プロンプト |
 
 ## 重要：APIキーについて
 
