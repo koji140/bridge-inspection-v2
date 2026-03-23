@@ -36,6 +36,7 @@ cloudflare/ Cloudflare WorkerのJSコード
 | [KNOWN_BUGS_AND_PITFALLS.md](docs/KNOWN_BUGS_AND_PITFALLS.md) | 既知バグ・罠メモ |
 | [GAS_API_PITFALLS.md](docs/GAS_API_PITFALLS.md) | GAS API 罠メモ |
 | [USER_PROFILE.md](docs/USER_PROFILE.md) | ユーザープロファイル |
+| [docs/presentation/kikagaku-final/README.md](docs/presentation/kikagaku-final/README.md) | キカガク最終発表用資料 |
 
 ## 重要：APIキーについて
 
