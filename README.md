@@ -37,6 +37,7 @@ cloudflare/ Cloudflare WorkerのJSコード
 | [GAS_API_PITFALLS.md](docs/GAS_API_PITFALLS.md) | GAS API 罠メモ |
 | [USER_PROFILE.md](docs/USER_PROFILE.md) | ユーザープロファイル |
 | [docs/presentation/kikagaku-final/README.md](docs/presentation/kikagaku-final/README.md) | キカガク最終発表用資料 |
+| [docs/presentation/kikagaku-final/manus-prompt.md](docs/presentation/kikagaku-final/manus-prompt.md) | Manus向けスライド生成プロンプト |
 
 ## 重要：APIキーについて
 
