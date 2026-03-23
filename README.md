@@ -42,6 +42,7 @@ cloudflare/ Cloudflare WorkerのJSコード
 | [docs/presentation/kikagaku-final/manus-prompt.md](docs/presentation/kikagaku-final/manus-prompt.md) | Manus向けスライド生成プロンプト |
 | [docs/presentation/kikagaku-final/manus-prompt-compact.md](docs/presentation/kikagaku-final/manus-prompt-compact.md) | Manus再投入用の超圧縮プロンプト |
 | [docs/presentation/kikagaku-final/github-ai-slide-prompt.md](docs/presentation/kikagaku-final/github-ai-slide-prompt.md) | GitHub AI Slide用プロンプト |
+| [docs/presentation/kikagaku-final/manus-instruction-final.md](docs/presentation/kikagaku-final/manus-instruction-final.md) | Manus実行時の最終指示 |
 
 ## 重要：APIキーについて
 
