@@ -74,3 +74,60 @@ Google SpreadsheetのSettings（⚙️設定シート）およびGASのスクリ
 ### プロンプトの使い分け
 - Claude: 要約・スライド生成
 - Manus: レイアウト生成・最終出力
+
+## AI Presentation System（設計思想）
+
+### 基本思想
+このリポジトリでは、プレゼン生成を以下の2つに分離している。
+
+- Content（内容）
+- Instruction（指示）
+
+---
+
+### Content（内容）
+- 正本は1つに統一する
+- 本リポジトリでは以下を正本とする
+
+- `docs/presentation/projects/<project-name>/slide-content.md`
+
+（キカガク最終発表では `manus-prompt-compact.md` が正本）
+
+---
+
+### Instruction（指示）
+- 使用するAIごとにプロンプトを分ける
+- 内容は変えず、指示だけ変える
+
+#### Claude
+- 役割: 内容の圧縮・構造化・スライド生成
+- 特徴: 要約に強い
+- 使用ファイル:
+  - `docs/prompts/presentation/claude-slide-template.md`
+
+#### Manus
+- 役割: レイアウト適用・最終出力
+- 特徴: PPT化・見た目整形
+- 使用ファイル:
+  - `docs/prompts/presentation/manus-instruction-final.md`
+
+---
+
+### 重要な原則
+- 内容（Content）はツールに依存しない
+- 指示（Instruction）のみツールごとに変える
+- MDは1つ、プロンプトは複数
+
+---
+
+### 再利用手順
+1. `slide-content-template.md` をコピー
+2. `slide-content.md` を作成
+3. 内容を記入
+4. ClaudeまたはManusにプロンプトを渡す
+
+---
+
+### 一言でいうと
+- Content = プロダクト
+- Instruction = ドライバ
