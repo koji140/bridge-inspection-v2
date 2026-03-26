@@ -57,3 +57,20 @@ Google SpreadsheetのSettings（⚙️設定シート）およびGASのスクリ
 ## 作成者
 
 石丸 浩司（2026年3月）
+
+## AI Presentation System
+
+このリポジトリには、AIを用いたプレゼン生成の仕組みが含まれる。
+
+### 再利用手順
+1. docs/presentation/template/slide-content-template.md をコピー
+2. docs/presentation/projects/xxx/slide-content.md を作成
+3. 内容を記入
+4. Claudeに以下を依頼：
+	- 「構造はテンプレを使用」
+	- 「内容はslide-content.mdを参照」
+
+### 関連ファイル
+- docs/skills/ai-presentation-generation.md
+- docs/prompts/presentation/claude-slide-template.md
+- docs/presentation/template/slide-content-template.md
