@@ -6,28 +6,17 @@
 この発表では、高架下点検業務における写真・位置情報・所見・報告書を一元管理する業務支援システムについて、
 企画背景、作成したGPTs／システムの内容、デモンストレーション、振り返り、今後の展望を整理します。
 
-## ファイル構成（役割）
-- [slide-outline.md](./slide-outline.md)
-  人間が読む構成案（章立て・流れ確認用）
+## このフォルダ内のファイルの役割
+- `slide-outline.md` : 人間が読む構成案
+- `talk-track.md` : 発表原稿
+- `manus-prompt.md` : 初期版の Manus 向けプロンプト
+- `manus-prompt-compact.md` : 今回の発表の内容正本
+- `github-ai-slide-prompt.md` : GitHub AI Slide 向けプロンプト
+- `manus-instruction-final.md` : 実行時指示の履歴的ファイル
 
-- [talk-track.md](./talk-track.md)
-  発表原稿（口頭説明用）
-
-- [manus-prompt.md](./manus-prompt.md)
-  初期版プロンプト（試行時の履歴）
-
-- [manus-prompt-compact.md](./manus-prompt-compact.md)
-  今回のキカガク発表専用の内容正本
-
-- [manus-instruction-final.md](./manus-instruction-final.md)
-  今回実行時の指示
-  （共通で再利用する版は [docs/prompts/presentation/manus-instruction-final.md](../../prompts/presentation/manus-instruction-final.md)）
-
-- [github-ai-slide-prompt.md](./github-ai-slide-prompt.md)
-  GitHub AI Slide利用時のプロンプト
-
-- [assets/](./assets/)
-  スクリーンショットや図版などの素材置き場
+## 補足
+- 今回の発表内容の正本は `manus-prompt-compact.md`
+- 再利用可能な共通プロンプトは `docs/prompts/presentation/` 配下に置く
 
 ## 発表構成
 1. 企画の概要

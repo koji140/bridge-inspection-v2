@@ -36,13 +36,7 @@ cloudflare/ Cloudflare WorkerのJSコード
 | [KNOWN_BUGS_AND_PITFALLS.md](docs/KNOWN_BUGS_AND_PITFALLS.md) | 既知バグ・罠メモ |
 | [GAS_API_PITFALLS.md](docs/GAS_API_PITFALLS.md) | GAS API 罠メモ |
 | [USER_PROFILE.md](docs/USER_PROFILE.md) | ユーザープロファイル |
-| [docs/presentation/kikagaku-final/README.md](docs/presentation/kikagaku-final/README.md) | キカガク最終発表用資料 |
-| [docs/presentation/kikagaku-final/slide-outline.md](docs/presentation/kikagaku-final/slide-outline.md) | 発表スライド構成案 |
-| [docs/presentation/kikagaku-final/talk-track.md](docs/presentation/kikagaku-final/talk-track.md) | 発表トーク原稿 |
-| [docs/presentation/kikagaku-final/manus-prompt.md](docs/presentation/kikagaku-final/manus-prompt.md) | Manus向けスライド生成プロンプト |
-| [docs/presentation/kikagaku-final/manus-prompt-compact.md](docs/presentation/kikagaku-final/manus-prompt-compact.md) | Manus再投入用の超圧縮プロンプト |
-| [docs/presentation/kikagaku-final/github-ai-slide-prompt.md](docs/presentation/kikagaku-final/github-ai-slide-prompt.md) | GitHub AI Slide用プロンプト |
-| [docs/presentation/kikagaku-final/manus-instruction-final.md](docs/presentation/kikagaku-final/manus-instruction-final.md) | Manus実行時の最終指示 |
+
 
 ## 重要：APIキーについて
 
@@ -62,40 +56,21 @@ Google SpreadsheetのSettings（⚙️設定シート）およびGASのスクリ
 
 このリポジトリには、AIを用いたプレゼン生成の仕組みが含まれる。
 
-### 今回のキカガク最終発表用ファイル
+### 今回のキカガク最終発表
+主に参照するファイル:
 - [docs/presentation/kikagaku-final/README.md](docs/presentation/kikagaku-final/README.md)
-- [docs/presentation/kikagaku-final/slide-outline.md](docs/presentation/kikagaku-final/slide-outline.md)
-- [docs/presentation/kikagaku-final/talk-track.md](docs/presentation/kikagaku-final/talk-track.md)
-- [docs/presentation/kikagaku-final/manus-prompt.md](docs/presentation/kikagaku-final/manus-prompt.md)（初期版）
-- [docs/presentation/kikagaku-final/manus-prompt-compact.md](docs/presentation/kikagaku-final/manus-prompt-compact.md)（今回の内容正本）
-- [docs/presentation/kikagaku-final/manus-instruction-final.md](docs/presentation/kikagaku-final/manus-instruction-final.md)（今回実行時指示）
+- [docs/presentation/kikagaku-final/manus-prompt-compact.md](docs/presentation/kikagaku-final/manus-prompt-compact.md)（内容正本）
+- [docs/presentation/kikagaku-final/slide-outline.md](docs/presentation/kikagaku-final/slide-outline.md)（構成案）
+- [docs/presentation/kikagaku-final/talk-track.md](docs/presentation/kikagaku-final/talk-track.md)（原稿）
 
-今回の発表だけを追う場合は、まず
-- 内容: [docs/presentation/kikagaku-final/manus-prompt-compact.md](docs/presentation/kikagaku-final/manus-prompt-compact.md)
-- 構成: [docs/presentation/kikagaku-final/slide-outline.md](docs/presentation/kikagaku-final/slide-outline.md)
-- 発表原稿: [docs/presentation/kikagaku-final/talk-track.md](docs/presentation/kikagaku-final/talk-track.md)
-を参照してください。
-
-### 再利用可能なAI Presentation System
+### 再利用可能な AI Presentation System
+スキル・プロンプト・テンプレートは以下を参照:
 - [docs/skills/ai-presentation-generation.md](docs/skills/ai-presentation-generation.md)
-- [docs/prompts/presentation/claude-slide-template.md](docs/prompts/presentation/claude-slide-template.md)（Claude共通版）
-- [docs/prompts/presentation/manus-instruction-final.md](docs/prompts/presentation/manus-instruction-final.md)（Manus共通版）
+- [docs/prompts/presentation/claude-slide-template.md](docs/prompts/presentation/claude-slide-template.md)（Claude用）
+- [docs/prompts/presentation/manus-instruction-final.md](docs/prompts/presentation/manus-instruction-final.md)（Manus用）
 - [docs/presentation/template/slide-content-template.md](docs/presentation/template/slide-content-template.md)
-- [docs/presentation/projects/kikagaku-final/slide-content.md](docs/presentation/projects/kikagaku-final/slide-content.md)（再利用用入力例）
+- [docs/presentation/projects/kikagaku-final/slide-content.md](docs/presentation/projects/kikagaku-final/slide-content.md)（入力例）
 
-### 再利用手順
-1. docs/presentation/template/slide-content-template.md をコピー
-2. docs/presentation/projects/xxx/slide-content.md を作成
-3. 内容を記入
-4. Claude または Manus に共通プロンプトを適用
-
-Claude / Manus の使い分け:
-- Claude: [docs/prompts/presentation/claude-slide-template.md](docs/prompts/presentation/claude-slide-template.md)
-- Manus: [docs/prompts/presentation/manus-instruction-final.md](docs/prompts/presentation/manus-instruction-final.md)
-
-### 関連ファイル
-- [docs/skills/ai-presentation-generation.md](docs/skills/ai-presentation-generation.md)
-- [docs/prompts/presentation/claude-slide-template.md](docs/prompts/presentation/claude-slide-template.md)
-- [docs/prompts/presentation/manus-instruction-final.md](docs/prompts/presentation/manus-instruction-final.md)
-- [docs/presentation/template/slide-content-template.md](docs/presentation/template/slide-content-template.md)
-- [docs/presentation/projects/kikagaku-final/slide-content.md](docs/presentation/projects/kikagaku-final/slide-content.md)
+### プロンプトの使い分け
+- Claude: 要約・スライド生成
+- Manus: レイアウト生成・最終出力
