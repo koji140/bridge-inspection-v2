@@ -38,6 +38,21 @@ cloudflare/ Cloudflare WorkerのJSコード
 | [USER_PROFILE.md](docs/USER_PROFILE.md) | ユーザープロファイル |
 
 
+## AIへの引き継ぎ
+
+新しいAIセッションを開始するときは、以下を読ませてください。
+
+### 共通原則（personal-os）
+- https://raw.githubusercontent.com/koji140/personal-os/main/operating-system.md
+- https://raw.githubusercontent.com/koji140/personal-os/main/decision-principles.md
+
+### このプロジェクト固有
+- 開発ルール・残課題：https://raw.githubusercontent.com/koji140/bridge-inspection-v2/main/docs/DEVELOPMENT_RULES.md
+- 既知バグ・罠メモ：https://raw.githubusercontent.com/koji140/bridge-inspection-v2/main/docs/KNOWN_BUGS_AND_PITFALLS.md
+- システム仕様書：https://raw.githubusercontent.com/koji140/bridge-inspection-v2/main/docs/SPECIFICATION.md
+
+---
+
 ## 重要：APIキーについて
 
 APIキー・デプロイURLなどの機密情報はこのリポジトリに含まれていません。
